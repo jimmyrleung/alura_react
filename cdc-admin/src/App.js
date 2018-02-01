@@ -12,11 +12,13 @@ class App extends Component {
     this.state = {
       lista: []
     };
-
-
   }
+  // O componentWillMount poderia ser utilizado nesse caso, mas como estamos fazendo uma requisição assincrona
+  // pode ser que o resultado da req chegasse somente depois do render, ou seja, nao adiantaria nada. 
+  // O ideal é utilizar o componentWillMount para operações síncronas.
 
-  componentWillMount() {
+  // Já que a requisição é assíncrona, utilizamos o componentDidMount
+  componentDidMount() {
     fetch("http://localhost:3002/api/authors")
       .then(res => res.json())
       .then(data => {
@@ -24,7 +26,7 @@ class App extends Component {
         let authors = [];
 
         data.forEach(author => {
-          authors.push({ nome: author._name, email: author._email, senha: author._password });
+          authors.push({ id: author._id, nome: author._name, email: author._email, senha: author._password });
         });
 
         console.log(authors);
@@ -92,9 +94,10 @@ class App extends Component {
                 <tbody>
                   {
                     // Para cada item da lista retorna uma tr
+                    // É uma boa prática definir uma key para ajudar o virtual DOM a identificar mais fácil elementos que mudaram
                     this.state.lista.map(function (autor) {
                       return (
-                        <tr>
+                        <tr key={autor.id}>
                           <td>{autor.nome}</td>
                           <td>{autor.email}</td>
                         </tr>
