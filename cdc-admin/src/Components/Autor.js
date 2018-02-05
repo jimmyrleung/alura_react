@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import InputCustomizado from '../SharedComponents/InputCustomizado';
+import PubSub from 'pubsub-js';
 
-export class FormularioCadastro extends Component {
+class CadastroAutores extends Component {
     constructor() {
         super(); // Component
 
@@ -22,18 +23,34 @@ export class FormularioCadastro extends Component {
         evt.preventDefault();
         console.log(`Enviando dados...`);
 
+        PubSub.publish("limpa-erros-formulario");
+
         fetch("http://localhost:3002/api/authors",
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: this.state.nome, email: this.state.email, password: this.state.senha })
             })
-            .then(res => res.json())
-            .then(resJson => {
-                console.log(resJson);
-                return this.atualizaListaAutores();
+            .then(res => {
+                let requestStatusCode = res.status;
+                return Promise.all([requestStatusCode, res.json()]);
+            })
+            .then(result => {
+                if (result[0] === 400) {
+                    this.handleValidationErrors(result[1].errors);
+                    return;
+                }
+                console.log("Atualizando lista...");
+                PubSub.publish("atualiza-lista-autores");
             })
             .catch(err => console.log(err));
+    }
+
+    handleValidationErrors(errors) {
+        errors.forEach((err) => {
+            console.log(err);
+            PubSub.publish("show-input-error", err);
+        });
     }
 
     setNome(evt) {
@@ -53,9 +70,9 @@ export class FormularioCadastro extends Component {
             <div className="pure-form pure-form-aligned" style={{ marginTop: 10 + 'px' }}>
                 {/* o onSubmit é um 'Synthetic Event' do React (um evento do react que está mapeado a um evento real)*/}
                 <form className="pure-form pure-form-aligned" method="post" onSubmit={this.enviaForm}>
-                    <InputCustomizado id="nome" type="text" name="nome" value={this.state.nome} onChange={this.setNome} label="Nome" />
+                    <InputCustomizado id="nome" type="text" name="name" value={this.state.nome} onChange={this.setNome} label="Nome" />
                     <InputCustomizado id="email" type="email" name="email" value={this.state.email} onChange={this.setEmail} label="Email" />
-                    <InputCustomizado id="senha" type="password" name="senha" value={this.state.senha} onChange={this.setSenha} label="Senha" />
+                    <InputCustomizado id="senha" type="password" name="password" value={this.state.senha} onChange={this.setSenha} label="Senha" />
                     <div className="pure-control-group">
                         <label></label>
                         <button type="submit" className="pure-button pure-button-primary">Gravar</button>
@@ -66,7 +83,7 @@ export class FormularioCadastro extends Component {
     }
 }
 
-export class TabelaDados extends Component {
+class ListaAutores extends Component {
     constructor() {
         super();
 
@@ -79,7 +96,7 @@ export class TabelaDados extends Component {
 
     // Já que a requisição é assíncrona, utilizamos o componentDidMount
     componentDidMount() {
-        console.log(this);
+        PubSub.subscribe("atualiza-lista-autores", () => this.atualizaListaAutores());
         return this.atualizaListaAutores();
     }
 
@@ -139,5 +156,17 @@ export class TabelaDados extends Component {
             </div>
         );
     }
+}
 
+export class AutorBox extends Component {
+    render() {
+        {/* O render espera retornar um elemento pai com elementos filhos. */ }
+        {/* Retornar sem a div seria o mesmo que retorna 2 elementos pais.*/ }
+        return (
+            <div>
+                <CadastroAutores />
+                <ListaAutores />
+            </div>
+        );
+    }
 }

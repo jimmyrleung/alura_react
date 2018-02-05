@@ -3,7 +3,7 @@ import logo from './logo.svg';
 //import './App.css';
 import './css/pure-min.css';
 import './css/side-menu.css';
-import { FormularioCadastro, TabelaDados } from './Components/Autor'
+import { AutorBox } from './Components/Autor'
 
 class App extends Component {
   constructor() {
@@ -35,8 +35,9 @@ class App extends Component {
             <h1>Cadastro de Autores</h1>
           </div>
           <div className="content" id="content">
-            <FormularioCadastro />
-            <TabelaDados />
+            {/* <CadastroAutores />
+            <ListaAutores /> */}
+            <AutorBox />
           </div>
         </div>
       </div>
