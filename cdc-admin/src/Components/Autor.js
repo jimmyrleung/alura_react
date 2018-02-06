@@ -159,13 +159,18 @@ class ListaAutores extends Component {
 }
 
 export class AutorBox extends Component {
+    // O  render espera retornar um elemento pai com elementos filhos.
+    // Retornar sem a div seria o mesmo que retorna 2 elementos pais.
     render() {
-        {/* O render espera retornar um elemento pai com elementos filhos. */ }
-        {/* Retornar sem a div seria o mesmo que retorna 2 elementos pais.*/ }
         return (
             <div>
-                <CadastroAutores />
-                <ListaAutores />
+                <div className="header">
+                    <h1>Cadastro de Autores</h1>
+                </div>
+                <div className="content" id="content">
+                    <CadastroAutores />
+                    <ListaAutores />
+                </div>
             </div>
         );
     }
